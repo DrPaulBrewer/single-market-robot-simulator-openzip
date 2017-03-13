@@ -16,26 +16,32 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress){
     }
     function simFromJSON(path){
 	var parse = simRegex.exec(path);
-	var slot = parse[0].charCodeAt(0)-"A".charCodeAt(0);
+	var slot;
+	try {
+	    slot = parse[1].charCodeAt(0)-"A".charCodeAt(0);
+	} catch(e){ slot = -1; }
 	return function(s){
-	    if ((slot<0) || (slot>25)){
-		throw new Error("simFromJSON: bad slot in path: "+path);
-	    } else {
+	    if ((slot>=0) && (slot<26)){
 		data.sims[slot] = new SMRS.Simulation(JSON.parse(s));
+	    } else {
+		throw new Error("simFromJSON: bad slot "+slot+" in path: "+path);
 	    }	    
 	};
     }
     function isLogFile(path){
+	var slot, logname;
 	var parse = logRegex.exec(path);
-	if (!parse) return false;
-	var slot = parse[0].charCodeAt(0)-"A".charCodeAt(0);
-	var logname = parse[1];
-	return ((slot >= 0) && (slot <= 26) && (SMRS.logNames.indexOf(logname)>=0));
+	if ((!parse)) return false;
+	try {
+	    slot = parse[1].charCodeAt(0)-"A".charCodeAt(0);
+	    logname = parse[2];
+	} catch(e) {}
+	return ((slot >= 0) && (slot <= 26) && (typeof(logname)==="string") && (SMRS.logNames.indexOf(logname)>=0));
     }
     function restoreLog(path){
 	var parse = logRegex.exec(path);
-	var slot = parse[0].charCodeAt(0)-"A".charCodeAt(0);
-	var logname = parse[1];
+	var slot = parse[1].charCodeAt(0)-"A".charCodeAt(0);
+	var logname = parse[2];
 	return function(s){
 	    var lines = s.split("\n");
 	    var mylog = data.sims[slot].logs[logname];
