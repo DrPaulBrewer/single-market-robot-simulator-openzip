@@ -5,41 +5,6 @@
 
 const JSzip = require('jszip');
 
-function pad(x){
-    "use strict";
-    return (x<10)? ("0"+x) : (''+x);
-}
-
-function myDateStamp(){
-    "use strict";
-    var now = new Date();
-    return ( ''+ now.getUTCFullYear() + 
-	     pad(now.getUTCMonth() + 1) +
-             pad(now.getUTCDate()) +
-             'T' + pad(now.getUTCHours()) +
-             pad(now.getUTCMinutes())
-	   );
-}
-
-function letter(n){
-    "use strict";
-    var A = "A".charCodeAt(0);
-    return String.fromCharCode(A+n);
-}
-
-function csvString(rows){
-    "use strict";
-    var s = '';
-    var i,l,row;
-    for(i=0,l=rows.length;i<l;++i){
-	row = rows[i];
-	s += row.join(",") + "\n";
-    }
-    return s;
-}
-
-// see http://stackoverflow.com/a/7220510/103081 by http://stackoverflow.com/users/27862/user123444555621 for pretty printed stringify
-
 module.exports = function openzip(zipdataAsPromise, SMRS, progress){
     "use strict";
     var data = { sims: [] };
@@ -54,19 +19,45 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress){
 	var slot = parse[0].charCodeAt(0)-"A".charCodeAt(0);
 	return function(s){
 	    if ((slot<0) || (slot>25)){
-		console.log("bad slot in path: "+path);
+		throw new Error("simFromJSON: bad slot in path: "+path);
 	    } else {
 		data.sims[slot] = new SMRS.Simulation(JSON.parse(s));
 	    }	    
-	}
+	};
+    }
+    function isLogFile(path){
+	var parse = logRegex.exec(path);
+	if (!parse) return false;
+	var slot = parse[0].charCodeAt(0)-"A".charCodeAt(0);
+	var logname = parse[1];
+	return ((slot >= 0) && (slot <= 26) && (SMRS.logNames.indexOf(logname)>=0));
     }
     function restoreLog(path){
 	var parse = logRegex.exec(path);
 	var slot = parse[0].charCodeAt(0)-"A".charCodeAt(0);
 	var logname = parse[1];
 	return function(s){
-	    
-	}
+	    var lines = s.split("\n");
+	    var mylog = data.sims[slot].logs[logname];
+	    var line, row, v, i, l;
+	    for(var lnum=0,filelen=lines.length; lnum<filelen; lnum++){
+		line = lines[lnum];
+		row = line.split(",");
+		for(i=0,l=row.length;i<l;++i){
+		    v = row[i];
+		    if ((v) && (/^\-?\d/.test(v))){
+			v = parseFloat(v);
+			if (!isNaN(v))
+			    row[i] = v;
+		    }
+		}
+		if ((lnum===0) && (SMRS.logHeaders[logname])){
+		    mylog.setHeader(row);
+		} else {
+		    mylog.data.push(row);
+		}
+	    }		
+	};
     }
     return new Promise(function(resolve, reject){
 	(zipdataAsPromise
@@ -74,19 +65,37 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress){
 	 .then(function(zip){
 	     var stage1 = [];
 	     zip.forEach(function(path, zipdata){
-		 if (configRegex.test(path)) stage1.push(zipdata.async("string").then(configFromJSON));
-		 if (simRegex.test(path)) stage1.push(zipdata.async("string").then(simFromJSON(path)));
+		 if (configRegex.test(path)) stage1.push(
+		     (zipdata
+		      .async("string")
+		      .then(configFromJSON)
+		      .then(function(){ progress("parsed config.json"); })
+		     )
+		 );
+		 if (simRegex.test(path)) stage1.push(
+		     (zipdata
+		      .async("string")
+		      .then(simFromJSON(path))
+		      .then(function(){ progress("parsed "+path); })
+		     )
+		 );
 	     });
 	     Promise.all(stage1).then(function(){
 		 var stage2 = [];
 		 zip.forEach(function(path,zipdata){
-		     if (logRegex.test(path)) stage2.push(zipdata.async("string").then(restoreLog(path)));
+		     if (isLogFile(path)) stage2.push(
+			 (zipdata
+			  .async("string")
+			  .then(restoreLog(path))
+			  .then(function(){ progress("parsed "+path); })
+			 )
+		     );
 		 });
 		 Promise.all(stage2).then(function(){
 		     resolve(data);
-		 });
-	     });
+		 }).then(function(){ progress(" COMPLETE "); }, function(e){ progress(" ERROR (stage 2): "+e); reject(e); });
+	     }, function(e){ progress(" ERROR (stage 1): "+e); reject(e); });
 	 })
 	);
-    };
+    });
 };
