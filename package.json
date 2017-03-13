@@ -1,0 +1,26 @@
+{
+  "name": "single-market-robot-simulator-openzip",
+  "version": "0.1.0",
+  "description": "restores config and logs of an array of single-market-robot-simulator simulations from .zip file data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drpaulbrewer/single-market-robot-simulator-openzip.git"
+  },
+  "keywords": [
+    "robot-trading"
+  ],
+  "author": "drpaulbrewer@eaftc.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/drpaulbrewer/single-market-robot-simulator-openzip/issues"
+  },
+  "homepage": "https://github.com/drpaulbrewer/single-market-robot-simulator-openzip#readme",
+  "dependencies": {
+    "jszip": "^3.0.0"
+  },
+  "devDependencies": {}
+}
