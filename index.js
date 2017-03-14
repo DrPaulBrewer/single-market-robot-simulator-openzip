@@ -75,14 +75,14 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress){
 		     (zipdata
 		      .async("string")
 		      .then(configFromJSON)
-		      .then(function(){ progress("parsed config.json"); })
+		      .then(function(){ progress("found config.json"); })
 		     )
 		 );
 		 if (simRegex.test(path)) stage1.push(
 		     (zipdata
 		      .async("string")
 		      .then(simFromJSON(path))
-		      .then(function(){ progress("parsed "+path); })
+		      .then(function(){ progress("found "+path); })
 		     )
 		 );
 	     });
@@ -93,13 +93,13 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress){
 			 (zipdata
 			  .async("string")
 			  .then(restoreLog(path))
-			  .then(function(){ progress("parsed "+path); })
+			  .then(function(){ progress("found "+path); })
 			 )
 		     );
 		 });
 		 Promise.all(stage2).then(function(){
 		     resolve(data);
-		 }).then(function(){ progress(" COMPLETE "); }, function(e){ progress(" ERROR (stage 2): "+e); reject(e); });
+		 }).then(function(){ progress(" finished reading zip file, processing... "); }, function(e){ progress(" ERROR (stage 2): "+e); reject(e); });
 	     }, function(e){ progress(" ERROR (stage 1): "+e); reject(e); });
 	 })
 	);
