@@ -43,26 +43,8 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress){
 	var slot = parse[1].charCodeAt(0)-"A".charCodeAt(0);
 	var logname = parse[2];
 	return function(s){
-	    var lines = s.split("\n");
 	    var mylog = data.sims[slot].logs[logname];
-	    var line, row, v, i, l;
-	    for(var lnum=0,filelen=lines.length; lnum<filelen; lnum++){
-		line = lines[lnum];
-		row = line.split(",");
-		for(i=0,l=row.length;i<l;++i){
-		    v = row[i];
-		    if ((v) && (/^\-?\d/.test(v))){
-			v = parseFloat(v);
-			if (!isNaN(v))
-			    row[i] = v;
-		    }
-		}
-		if ((lnum===0) && (SMRS.logHeaders[logname])){
-		    mylog.setHeader(row);
-		} else {
-		    mylog.data.push(row);
-		}
-	    }		
+	    mylog.fromString(s);
 	};
     }
     return new Promise(function(resolve, reject){
