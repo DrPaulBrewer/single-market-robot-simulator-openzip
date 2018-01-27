@@ -45,43 +45,44 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress){
 	    mylog.fromString(s);
 	};
     }
-    return new Promise(function(resolve, reject){
-	(zipdataAsPromise
-	 .then(JSzip.loadAsync)
-	 .then(function(zip){
-	     var stage1 = [];
-	     zip.forEach(function(path, zipdata){
-		 if (configRegex.test(path)) stage1.push(
-		     (zipdata
-		      .async("string")
-		      .then(configFromJSON)
-		      .then(function(){ progress("found config.json"); })
-		     )
-		 );
-		 if (simRegex.test(path)) stage1.push(
-		     (zipdata
-		      .async("string")
-		      .then(simFromJSON(path))
-		      .then(function(){ progress("found "+path); })
-		     )
-		 );
-	     });
-	     Promise.all(stage1).then(function(){
-		 var stage2 = [];
-		 zip.forEach(function(path,zipdata){
-		     if (isLogFile(path)) stage2.push(
-			 (zipdata
-			  .async("string")
-			  .then(restoreLog(path))
-			  .then(function(){ progress("found "+path); })
-			 )
-		     );
-		 });
-		 Promise.all(stage2).then(function(){
-		     resolve(data);
-		 }).then(function(){ progress(" finished reading zip file, processing... "); }, function(e){ progress(" ERROR (stage 2): "+e); reject(e); });
-	     }, function(e){ progress(" ERROR (stage 1): "+e); reject(e); });
-	 })
-	);
-    });
+    function pStage1(zip){
+	var stage1 = [Promise.resolve(zip)];
+	zip.forEach(function(path, zipdata){
+	    if (configRegex.test(path)) stage1.push(
+		(zipdata
+		 .async("string")
+		 .then(configFromJSON)
+		 .then(function(){ progress("found config.json"); })
+		)
+	    );
+	    if (simRegex.test(path)) stage1.push(
+		(zipdata
+		 .async("string")
+		 .then(simFromJSON(path))
+		 .then(function(){ progress("found "+path); })
+		)
+	    );
+	});
+	return Promise.all(stage1);
+    }    
+    function pStage2(completedStage1){
+	var zip = completedStage1[0];
+	var stage2 = [];
+	zip.forEach(function(path,zipdata){
+	    if (isLogFile(path)) stage2.push(
+		(zipdata
+		 .async("string")
+		 .then(restoreLog(path))
+		 .then(function(){ progress("found "+path); })
+		)
+	    );
+	});
+	return Promise.all(stage2);
+    }	
+    return (zipdataAsPromise
+	    .then(JSzip.loadAsync)
+	    .then(pStage1)
+	    .then(pStage2)
+	    .then(function(){ return data; })
+	   );
 };
