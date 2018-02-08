@@ -18,12 +18,12 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress){
 	var parse = simRegex.exec(path);
 	if (!parse) throw new Error("simFromJSON: can not parse path: "+path);
 	var slot = +(parse[1]);
+	if (!( (slot>=0) && (slot<99) ) )
+	    throw new Error("simFromJSON: bad slot "+slot+" in path: "+path);    
 	return function(s){
-	    if ((slot>=0) && (slot<99)){
-		data.sims[slot] = new SMRS.Simulation(JSON.parse(s));
-	    } else {
-		throw new Error("simFromJSON: bad slot "+slot+" in path: "+path);
-	    }	    
+	    const sConfig = JSON.parse(s);
+	    sConfig.logToFileSystem = false;
+	    data.sims[slot] = new SMRS.Simulation(sConfig);
 	};
     }
     function isLogFile(path){
