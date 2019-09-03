@@ -19,7 +19,7 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
   function simFromJSON(path) {
     var parse = simRegex.exec(path);
     if (!parse) throw new Error("simFromJSON: can not parse path: " + path);
-    var slot = +(parse[1]);
+    var slot = parseInt(parse[1],10);
     if (!((slot >= 0) && (slot < 999)))
       throw new Error("simFromJSON: bad slot " + slot + " in path: " + path);
     return function (s) {
@@ -34,7 +34,7 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
     var parse = logRegex.exec(path);
     if (!parse) return false;
     try {
-      slot = +(parse[1]);
+      slot = parseInt(parse[1],10);
       logname = parse[2];
     } catch (e) {}
     return ((slot >= 0) && (slot <= 99) && (typeof (logname) === "string") && (SMRS.logNames.indexOf(logname) >= 0));
@@ -42,7 +42,7 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
 
   function restoreLog(path) {
     var parse = logRegex.exec(path);
-    var slot = +(parse[1]);
+    var slot = parseInt(parse[1],10);
     var logname = parse[2];
     return function (s) {
       var mylog = data.sims[slot].logs[logname];
