@@ -7,7 +7,7 @@ const JSzip = require('jszip');
 
 module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
   "use strict";
-  var data = { sims: [] };
+  const data = {};
   const simRegex = /\/(\d+)\/sim.json$/;
   const configRegex = /\/config.json$/;
   const logRegex = /\/(\d+)\/(\w+)\.csv$/;
@@ -17,9 +17,10 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
   }
 
   function simFromJSON(path) {
-    var parse = simRegex.exec(path);
+    if (!data.sims) data.sims = [];
+    const parse = simRegex.exec(path);
     if (!parse) throw new Error("simFromJSON: can not parse path: " + path);
-    var slot = parseInt(parse[1],10);
+    const slot = parseInt(parse[1],10);
     if (!((slot >= 0) && (slot < 999)))
       throw new Error("simFromJSON: bad slot " + slot + " in path: " + path);
     return function (s) {
@@ -30,8 +31,8 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
   }
 
   function isLogFile(path) {
-    var slot, logname;
-    var parse = logRegex.exec(path);
+    let slot, logname;
+    const parse = logRegex.exec(path);
     if (!parse) return false;
     try {
       slot = parseInt(parse[1],10);
@@ -41,30 +42,30 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
   }
 
   function restoreLog(path) {
-    var parse = logRegex.exec(path);
-    var slot = parseInt(parse[1],10);
-    var logname = parse[2];
+    const parse = logRegex.exec(path);
+    const slot = parseInt(parse[1],10);
+    const logname = parse[2];
     return function (s) {
-      var mylog = data.sims[slot].logs[logname];
+      const mylog = data.sims[slot].logs[logname];
       mylog.fromString(s);
     };
   }
 
   function pStage1(zip) {
-    var stage1 = [Promise.resolve(zip)];
+    const stage1 = [Promise.resolve(zip)];
     zip.forEach(function (path, zipdata) {
       if (configRegex.test(path)) stage1.push(
         (zipdata
           .async("string")
           .then(configFromJSON)
-          .then(function () { progress("found config.json"); })
+          .then(function () { if (progress) progress("found config.json"); })
         )
       );
-      if (simRegex.test(path)) stage1.push(
+      if (SMRS && simRegex.test(path)) stage1.push(
         (zipdata
           .async("string")
           .then(simFromJSON(path))
-          .then(function () { progress("found " + path); })
+          .then(function () { if (progress) progress("found " + path); })
         )
       );
     });
@@ -72,23 +73,27 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
   }
 
   function pStage2(completedStage1) {
-    var zip = completedStage1[0];
-    var stage2 = [];
-    zip.forEach(function (path, zipdata) {
-      if (isLogFile(path)) stage2.push(
-        (zipdata
-          .async("string")
-          .then(restoreLog(path))
-          .then(function () { progress("found " + path); })
-        )
-      );
-    });
+    const zip = completedStage1[0];
+    const stage2 = [];
+    if (SMRS){
+      zip.forEach(function (path, zipdata) {
+        if (isLogFile(path)) stage2.push(
+          (zipdata
+            .async("string")
+            .then(restoreLog(path))
+            .then(function () { if (progress) progress("found " + path); })
+          )
+        );
+      });
+    }
     return Promise.all(stage2);
   }
-  return (zipdataAsPromise
-    .then(JSzip.loadAsync)
-    .then(pStage1)
-    .then(pStage2)
-    .then(function () { return data; })
-  );
+  if (typeof(SMRS)==='object'){
+    return (zipdataAsPromise
+      .then(JSzip.loadAsync)
+      .then(pStage1)
+      .then(pStage2)
+      .then(function () { return data; })
+    );
+  }
 };
