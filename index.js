@@ -88,8 +88,8 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
     }
     return Promise.all(stage2);
   }
-  if (typeof(SMRS)==='object'){
-    return (zipdataAsPromise
+
+  return (zipdataAsPromise
       .then(JSzip.loadAsync)
       .then(pStage1)
       .then(pStage2)
