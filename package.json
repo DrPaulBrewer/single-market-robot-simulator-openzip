@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/drpaulbrewer/single-market-robot-simulator-openzip#readme",
   "dependencies": {
-    "jszip": "^3.0.0"
+    "jszip": "^3.2.2"
   },
   "devDependencies": {}
 }

@@ -95,5 +95,4 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
       .then(pStage2)
       .then(function () { return data; })
     );
-  }
 };
