@@ -3,7 +3,7 @@
 
 /* eslint no-shadow: "error" */
 
-
+const pEachSeries = require('p-each-series');
 const {unzip} = require('unzipit');
 const {parse} = require('secure-json-parse');
 
@@ -32,9 +32,13 @@ class BReader {
   }
 }
 
+function delay(waitingTimeMs){
+  return new Promise(function(resolve){
+    setTimeout(resolve,waitingTimeMs);
+  });
+}
 
 module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
-  "use strict";
   const data = {};
   const simRegex = /\/(\d+)\/sim.json$/;
   const configRegex = /\/config.json$/;
@@ -82,19 +86,21 @@ module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
     configFromJSON(configJSONString);
     if (SMRS){
         const simJSONFiles = Object.keys(entries).filter((path)=>(simRegex.test(path)));
-        const simPromises = simJSONFiles.map(async (path)=>{
+        await pEachSeries(simJSONFiles, async (path)=>{
           const simJSONString = await entries[path].text();
           if (progress) progress("found "+path);
+          await delay(20);
           simFromJSON(path, simJSONString);
         });
-        await Promise.all(simPromises);
+        await delay(50);
         const logFiles = Object.keys(entries).filter((path)=>(isLogFile(path)));
-        const logPromises = logFiles.map(async (path)=>{
+        await pEachSeries(logFiles, async (path)=>{
           const logString = await entries[path].text();
           if (progress) progress("found "+path);
+          await delay(20);
           restoreLog(path,logString);
         });
-        await Promise.all(logPromises);
+        await delay(50);
     }
   }
 
