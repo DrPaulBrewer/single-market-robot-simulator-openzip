@@ -10,7 +10,7 @@ const secureJSONPolicy = {
   constructorAction: 'remove'
 };  // see https://github.com/fastify/secure-json-parse
 
-module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
+module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
   "use strict";
   const data = {};
   const simRegex = /\/(\d+)\/sim.json$/;
@@ -75,9 +75,9 @@ module.exports = function openzip(zipdataAsPromise, SMRS, progress) {
     }
   }
 
-  return (zipdataAsPromise
-      .then(unzip)
-      .then(readSimulations)
-      .then(function () { return data; })
-    );
+  const enc = new TextEncoder();
+  const rawData = enc(await zipdataAsPromise);
+  const unzipped = await unzip(rawData);
+  await readSimulations(unzipped);
+  return data;
 };
