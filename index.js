@@ -75,8 +75,12 @@ module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
     }
   }
 
-  const enc = new TextEncoder();
-  const rawData = enc.encode(await zipdataAsPromise);
+  const bString = await zipdataAsPromise;
+  // assume bString is a binary string and perform a manual copy to a Uint8Array
+  const rawData = new Uint8Array(bString.length);
+  for(let i=0,l=bString.length; i<l; i++){
+    rawData[i] = bString.charCodeAt(i) & 0xFF;
+  }
   const unzipped = await unzip(rawData);
   await readSimulations(unzipped);
   return data;
