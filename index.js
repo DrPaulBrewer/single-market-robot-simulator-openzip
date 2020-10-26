@@ -12,6 +12,27 @@ const secureJSONPolicy = {
   constructorAction: 'remove'
 };  // see https://github.com/fastify/secure-json-parse
 
+class BReader {
+  constructor(bstring){
+    this.bstring = bstring;
+  }
+  async close() {
+    return true;
+  }
+  async getLength() {
+    return this.bstring.length;
+  }
+  async read(offset, length) {
+    const bstring = this.bstring;
+    const data = new Uint8Array(length);
+    for(let i=0; i<length; i++){
+      data[i] = bstring.charCodeAt(offset+i) & 0xFF;
+    }
+    return data;
+  }
+}
+
+
 module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
   "use strict";
   const data = {};
@@ -78,12 +99,8 @@ module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
   }
 
   const bString = await zipdataAsPromise;
-  // assume bString is a binary string and perform a manual copy to a Uint8Array
-  const rawData = new Uint8Array(bString.length);
-  for(let i=0,l=bString.length; i<l; i++){
-    rawData[i] = bString.charCodeAt(i) & 0xFF;
-  }
-  const unzipped = await unzip(rawData);
+  const reader = new BReader(bString);
+  const unzipped = await unzip(reader);
   await readSimulations(unzipped);
   return data;
 };
