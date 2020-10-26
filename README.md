@@ -28,17 +28,16 @@ returns a promise with an object payload `data` with properties `data.sims` and 
 
 Parameters:
 
-`zipdata` is a Blob or ArrayBuffer to be read by jszip
+`zipdata` is a Blob or ArrayBuffer to be read by Greggman and Trevor Sanz's unzippit module
 
 `SMRS` is an object containing an import of single-market-robot-simulator or similar code
 
-`progress`, optional, is a function taking a single string parameter that writes status updates to an appropriate part of the screen `progress("almost done...")` 
+`progress`, optional, is a function taking a single string parameter that writes status updates to an appropriate part of the screen `progress("almost done...")`
 
-###Copyright
+### Copyright
 
-2017 Paul Brewer Economic and Financial Technology Consulting LLC
+2020 Paul Brewer Economic and Financial Technology Consulting LLC
 
-###License
+### License
 
 MIT License
-
