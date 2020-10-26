@@ -1,6 +1,6 @@
 {
   "name": "single-market-robot-simulator-openzip",
-  "version": "3.7.3",
+  "version": "3.7.4",
   "description": "restores config and logs of an array of single-market-robot-simulator simulations from .zip file data",
   "main": "index.js",
   "scripts": {
