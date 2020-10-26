@@ -76,7 +76,7 @@ module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
   }
 
   const enc = new TextEncoder();
-  const rawData = enc(await zipdataAsPromise);
+  const rawData = enc.encode(await zipdataAsPromise);
   const unzipped = await unzip(rawData);
   await readSimulations(unzipped);
   return data;
