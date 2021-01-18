@@ -21,7 +21,7 @@
   "homepage": "https://github.com/drpaulbrewer/single-market-robot-simulator-openzip#readme",
   "dependencies": {
     "p-each-series": "^2.1.0",
-    "secure-json-parse": "^2.1.0",
+    "secure-json-parse": "^2.2.0",
     "unzipit": "^1.3.3"
   },
   "devDependencies": {
