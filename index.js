@@ -16,17 +16,18 @@ class BReader {
   constructor(bstring){
     this.bstring = bstring;
   }
-  async close() {
+  close() {
+    delete this.bstring;
     return true;
   }
-  async getLength() {
+  getLength() {
     return this.bstring.length;
   }
-  async read(offset, length) {
+  read(offset, length) {
     const bstring = this.bstring;
     const data = new Uint8Array(length);
-    for(let i=0; i<length; i++){
-      data[i] = bstring.charCodeAt(offset+i) & 0xFF;
+    for(let i=0;i<length;i++){
+      data[i] = bstring.charCodeAt(offset+i) & 0xFF;  // eslint-disable-line no-bitwise
     }
     return data;
   }
@@ -51,24 +52,23 @@ module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
   function simFromJSON(path, s) {
     if (!data.sims) data.sims = [];
     const parsedPath = simRegex.exec(path);
+    /* c8 ignore start */
     if (!parsedPath) throw new Error("simFromJSON: can not parse path: " + path);
     const slot = parseInt(parsedPath[1],10);
     if (!((slot >= 0) && (slot <= 999)))
       throw new Error("simFromJSON: bad slot " + slot + " in path: " + path);
+    /* c8 ignore stop */
     const sConfig = parse(s, secureJSONPolicy);
     sConfig.logToFileSystem = false;
     data.sims[slot] = new SMRS.Simulation(sConfig);
   }
 
   function isLogFile(path) {
-    let slot, logname;
     const parsedPath = logRegex.exec(path);
     if (!parsedPath) return false;
-    try {
-      slot = parseInt(parsedPath[1],10);
-      logname = parsedPath[2];
-    } catch (e) {} // eslint-disable-line no-empty
-    return ((slot >= 0) && (slot <= 999) && (typeof (logname) === "string") && (SMRS.logNames.indexOf(logname) >= 0));
+    const slot = parseInt(parsedPath[1],10);
+    const logname = parsedPath[2];
+    return ((slot >= 0) && (slot <= 999) && (typeof(logname) === "string") && (SMRS.logNames.indexOf(logname) >= 0));
   }
 
   function restoreLog(path,s) {
@@ -108,5 +108,6 @@ module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
   const reader = new BReader(bString);
   const unzipped = await unzip(reader);
   await readSimulations(unzipped);
+  reader.close();
   return data;
 };
