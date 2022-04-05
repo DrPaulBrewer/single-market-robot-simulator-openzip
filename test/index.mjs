@@ -1,4 +1,4 @@
-/* eslint-env node, mocha */
+/* eslint-env es2020, node, mocha */
 
 
 // Copyright 2022 Paul Brewer Economic & Financial Technology Consulting LLC
@@ -10,7 +10,7 @@ import 'should';
 import fsPromises from 'fs/promises';
 import * as SMRS from 'single-market-robot-simulator';
 import transpluck from 'transpluck';
-import openzip from '../index.js';
+import openzip from '../index.mjs';
 
 let zipdata = null;
 let out1,out2 = null;

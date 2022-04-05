@@ -1,11 +1,13 @@
+/* eslint-env es2020 */
+/* eslint no-shadow: "error" */
+
 /* Copyright 2020 Paul Brewer, Economic and Financial Technology Consulting LLC */
 /* This file is open source software.  The MIT License applies to this software. */
 
-/* eslint no-shadow: "error" */
+import pEachSeries from 'p-each-series';
+import {unzip} from 'unzipit';
+import {parse} from 'secure-json-parse';
 
-const pEachSeries = require('p-each-series');
-const {unzip} = require('unzipit');
-const {parse} = require('secure-json-parse');
 
 const secureJSONPolicy = {
   protoAction: 'remove',
@@ -39,7 +41,7 @@ function delay(waitingTimeMs){
   });
 }
 
-module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
+export default async function openzip(zipdataAsPromise, SMRS, progress) {
   const data = {};
   const simRegex = /\/(\d+)\/sim.json$/;
   const configRegex = /\/config.json$/;
@@ -110,4 +112,4 @@ module.exports = async function openzip(zipdataAsPromise, SMRS, progress) {
   await readSimulations(unzipped);
   reader.close();
   return data;
-};
+}
