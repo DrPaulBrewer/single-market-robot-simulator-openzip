@@ -1,10 +1,14 @@
 {
   "name": "single-market-robot-simulator-openzip",
-  "version": "3.10.0",
+  "version": "4.0.0",
+  "exports": "index.mjs",
   "description": "restores config and logs of an array of single-market-robot-simulator simulations from .zip file data",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "docs": "rm -rf ./docs && npx jsdoc -c .jsdoc.conf.json --access all src/index.mjs && mv out docs",
+    "lint": "eslint index.mjs",
+    "lint-test": "eslint test/index.mjs",
+    "test": "c8 --100 --reporter=text mocha  --slow 50 --timeout 60000",
+    "go": "npm run lint && npm run lint-test && npm run test"
   },
   "repository": {
     "type": "git",
@@ -20,11 +24,17 @@
   },
   "homepage": "https://github.com/drpaulbrewer/single-market-robot-simulator-openzip#readme",
   "dependencies": {
-    "p-each-series": "^2.1.0",
-    "secure-json-parse": "^2.1.0",
-    "unzipit": "^1.3.3"
+    "p-each-series": "^3",
+    "secure-json-parse": "^2.4.0",
+    "unzipit": "^1.4.0"
   },
   "devDependencies": {
-    "eslint": "^7.12.0"
+    "c8": "^7.11.0",
+    "eslint": "^8.12.0",
+    "jsdoc": "^3.6.10",
+    "mocha": "^9.2.2",
+    "should": "^13.2.3",
+    "single-market-robot-simulator": "^7.0.2",
+    "transpluck": "^1.0.4"
   }
 }

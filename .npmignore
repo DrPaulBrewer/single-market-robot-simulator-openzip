@@ -1,0 +1,9 @@
+*.zip
+*.json
+test/data
+node_modules
+coverage
+*.csv
+example*.csv
+example*.js
+*~
