@@ -91,7 +91,7 @@ export default async function openzip(zipdataAsPromise, SMRS, progress) {
         await pEachSeries(simJSONFiles, async (path)=>{
           const simJSONString = await entries[path].text();
           if (progress) progress("found "+path);
-          await delay(20);
+          await delay(10);
           simFromJSON(path, simJSONString);
         });
         await delay(50);
@@ -99,7 +99,7 @@ export default async function openzip(zipdataAsPromise, SMRS, progress) {
         await pEachSeries(logFiles, async (path)=>{
           const logString = await entries[path].text();
           if (progress) progress("found "+path);
-          await delay(20);
+          await delay(10);
           restoreLog(path,logString);
         });
         await delay(50);
