@@ -2,7 +2,7 @@
   "name": "single-market-robot-simulator-openzip",
   "version": "3.11.0",
   "description": "restores config and logs of an array of single-market-robot-simulator simulations from .zip file data",
-  "main": "index.js",
+  "main": "./index.js",
   "scripts": {
     "lint": "eslint index.js",
     "lint-test": "eslint test/index.mjs",
