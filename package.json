@@ -1,7 +1,7 @@
 {
   "name": "single-market-robot-simulator-openzip",
   "version": "4.1.0",
-  "exports": "index.mjs",
+  "exports": "./index.mjs",
   "description": "restores config and logs of an array of single-market-robot-simulator simulations from .zip file data",
   "scripts": {
     "docs": "rm -rf ./docs && npx jsdoc -c .jsdoc.conf.json --access all src/index.mjs && mv out docs",
