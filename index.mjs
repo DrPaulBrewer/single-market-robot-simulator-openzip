@@ -83,9 +83,11 @@ export default async function openzip(zipdataAsPromise, SMRS, progress) {
 
   async function readSimulations({entries}){
     const configJSONFile = Object.keys(entries).find((path)=>(configRegex.test(path)));
-    const configJSONString = await entries[configJSONFile].text();
-    if (progress) progress("found "+configJSONFile);
-    configFromJSON(configJSONString);
+    if (configJSONFile){
+      const configJSONString = await entries[configJSONFile].text();
+      if (progress) progress("found "+configJSONFile);
+      configFromJSON(configJSONString);
+    }
     if (SMRS){
         const simJSONFiles = Object.keys(entries).filter((path)=>(simRegex.test(path)));
         await pEachSeries(simJSONFiles, async (path)=>{

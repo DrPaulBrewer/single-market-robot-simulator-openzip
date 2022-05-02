@@ -79,4 +79,15 @@ describe('single-market-robot-simulator-openzip', ()=>{
     )
   );
   });
+
+  const badZipName = 'test/data/noconfig.zip';
+  let badZipOutput;
+  it('should unzip the noconfig.zip file without error', async ()=>{
+    const zipPromise = fsPromises.readFile(badZipName,latin1);
+    badZipOutput = await openzip(zipPromise);
+  });
+  it('noconfig.zip output is empty object {}', ()=>{
+    badZipOutput.should.deepEqual({});
+  });
+
 });
