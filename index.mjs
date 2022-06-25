@@ -14,6 +14,12 @@ const secureJSONPolicy = {
   constructorAction: 'remove'
 };  // see https://github.com/fastify/secure-json-parse
 
+function delay(waitingTimeMs){
+  return new Promise(function(resolve){
+    setTimeout(resolve,waitingTimeMs);
+  });
+}
+
 class BReader {
   constructor(bstring){
     this.bstring = bstring;
@@ -35,13 +41,7 @@ class BReader {
   }
 }
 
-function delay(waitingTimeMs){
-  return new Promise(function(resolve){
-    setTimeout(resolve,waitingTimeMs);
-  });
-}
-
-export default async function openzip(zipdataAsPromise, SMRS, progress) {
+export default async function openzip(zipdata, SMRS, progress) {
   const data = {};
   const simRegex = /\/(\d+)\/sim.json$/;
   const configRegex = /\/config.json$/;
@@ -108,10 +108,16 @@ export default async function openzip(zipdataAsPromise, SMRS, progress) {
     }
   }
 
-  const bString = await zipdataAsPromise;
-  const reader = new BReader(bString);
-  const unzipped = await unzip(reader);
+  const isPromise = (zipdata?.constructor?.name==='Promise');
+  let usingBReader = false;
+  let resolvedData = isPromise? (await zipdata): zipdata;
+  if (typeof(resolvedData)==='string') {
+    usingBReader = true;
+    resolvedData = new BReader(resolvedData);
+  }
+  const unzipped = await unzip(resolvedData);
   await readSimulations(unzipped);
-  reader.close();
+  if (usingBReader)
+    resolvedData.close();
   return data;
 }
