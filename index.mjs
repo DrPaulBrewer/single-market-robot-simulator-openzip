@@ -41,12 +41,20 @@ class BReader {
   }
 }
 
+
 export default async function openzip(zipdata, SMRS, progress) {
   const data = {};
   const simRegex = /\/(\d+)\/sim.json$/;
   const configRegex = /\/config.json$/;
   const logRegex = /\/(\d+)\/(\w+)\.csv$/;
+  let max = 2;
+  let value = 0;
 
+  function _progress(message){
+    value += 1;
+    progress({value,max,message});
+  }
+    
   function configFromJSON(s) {
     data.config = parse(s, secureJSONPolicy);
   }
@@ -85,22 +93,23 @@ export default async function openzip(zipdata, SMRS, progress) {
     const configJSONFile = Object.keys(entries).find((path)=>(configRegex.test(path)));
     if (configJSONFile){
       const configJSONString = await entries[configJSONFile].text();
-      if (progress) progress("found "+configJSONFile);
+      if (progress) _progress("found "+configJSONFile);
       configFromJSON(configJSONString);
     }
     if (SMRS){
         const simJSONFiles = Object.keys(entries).filter((path)=>(simRegex.test(path)));
+	const logFiles = Object.keys(entries).filter((path)=>(isLogFile(path)));
+	max += simJSONFiles.length + logFiles.length;
         await pEachSeries(simJSONFiles, async (path)=>{
           const simJSONString = await entries[path].text();
-          if (progress) progress("found "+path);
+          if (progress) _progress("found "+path);
           await delay(10);
           simFromJSON(path, simJSONString);
         });
         await delay(50);
-        const logFiles = Object.keys(entries).filter((path)=>(isLogFile(path)));
         await pEachSeries(logFiles, async (path)=>{
           const logString = await entries[path].text();
-          if (progress) progress("found "+path);
+          if (progress) _progress("found "+path);
           await delay(10);
           restoreLog(path,logString);
         });
@@ -119,5 +128,8 @@ export default async function openzip(zipdata, SMRS, progress) {
   await readSimulations(unzipped);
   if (usingBReader)
     resolvedData.close();
+  value = max - 1;
+  if (progress)
+    _progress("done");
   return data;
 }

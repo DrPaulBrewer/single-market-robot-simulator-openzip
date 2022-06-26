@@ -36,7 +36,7 @@ returns a `Promise` resolving to properties `data.sims` and `data.config`
 
 `SMRS` is an object containing an import of single-market-robot-simulator or similar code
 
-`progress`, optional, is a function taking a single string parameter that writes status updates to an appropriate part of the screen `progress("almost done...")`
+`progress`, optional, is a function taking a single object parameter `{value, max, message}` that writes status updates to an appropriate part of the screen
 
 ## Copyright
 
